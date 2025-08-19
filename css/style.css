@@ -495,7 +495,7 @@ body {
       hsla(276, 100%, 75%, 0.454),
       hsla(276, 46%, 75%, 0.509)
     ),
-    url("/resources/img/form-pic-2.jpeg");
+    url("/resources/img/form-pic.jpeg");
   background-size: cover;
   background-position: center;
 }
@@ -573,7 +573,7 @@ body {
   text-decoration: none;
   font-size: 1.6rem;
   color: #a4a4a4;
-  trasition: all 0.4s;
+  transition: all 0.4s;
 }
 
 .footer-link:hover,

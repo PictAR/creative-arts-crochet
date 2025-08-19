@@ -120,14 +120,14 @@
 
     pointer-events: none;
 
-    visibility: none;
+    visibility: hidden;
   }
 
   .nav-open .main-nav {
     opacity: 1;
     pointer-events: auto;
     visibility: visible;
-    transform: translateX();
+    transform: translateX(0);
   }
 
   .nav-open .icon-mobile-nav[name="close-outline"] {
@@ -181,11 +181,8 @@
 /****************************/
 
 @media (max-width: 34em) {
-  .grid {
-    row-gap: 4.8rem;
-  }
-
   .contact {
-    display: ;
+    grid-template-columns: 1fr;   /* stack */
+    gap: 1.25rem;                  /* keep some vertical spacing */
   }
 }
