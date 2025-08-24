@@ -1,0 +1,44 @@
+name: Fetch Etsy Reviews
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "17 8 * * *" # daily 08:17 UTC; adjust if you like
+  push:
+    paths:
+      - .github/workflows/fetch-etsy-reviews.yml
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fetch Etsy reviews
+        env:
+          ETSY_CLIENT_ID: ${{ secrets.ETSY_CLIENT_ID }}
+          ETSY_REFRESH_TOKEN: ${{ secrets.ETSY_REFRESH_TOKEN }}
+          ETSY_SHOP_ID: ${{ secrets.ETSY_SHOP_ID }}
+        run: |
+          node -e "require('fs').mkdirSync('resources/data',{recursive:true})"
+          node scripts/fetch-etsy-reviews.mjs
+
+      - name: Commit changes (if any)
+        run: |
+          if [ -n \"$(git status --porcelain)\" ]; then
+            git config user.name  github-actions
+            git config user.email github-actions@users.noreply.github.com
+            git add resources/data/reviews.json
+            git commit -m 'chore: update reviews.json from Etsy'
+            git push
+          else
+            echo 'No changes.'
+          fi
