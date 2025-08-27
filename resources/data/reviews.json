@@ -1,0 +1,34 @@
+[
+  {
+    "author": "Sally M.",
+    "avatar": "resources/img/cust/1.png",
+    "rating": 5,
+    "text": "Pattern was crystal clear and the fit is *chef’s kiss*. Already planning my second make.",
+    "date": "2025-07-12",
+    "listing_url": "https://www.etsy.com/ca/listing/EXAMPLE1"
+  },
+  {
+    "author": "Hannah B.",
+    "avatar": "resources/img/cust/2.png",
+    "rating": 5,
+    "text": "Loved the step-by-step photos. Finished in a weekend and got compliments immediately.",
+    "date": "2025-06-02",
+    "listing_url": "https://www.etsy.com/ca/listing/EXAMPLE2"
+  },
+  {
+    "author": "Polly W.",
+    "avatar": "resources/img/cust/3.png",
+    "rating": 4,
+    "text": "Fun, modern, wearable. Minimal frogging and a neat edge trick I’ll reuse forever.",
+    "date": "2025-05-21",
+    "listing_url": "https://www.etsy.com/ca/listing/EXAMPLE3"
+  },
+  {
+    "author": "Mary S.",
+    "avatar": "resources/img/cust/4.png",
+    "rating": 5,
+    "text": "Sizing was spot on and the notes saved me so much time. Highly recommend.",
+    "date": "2025-05-03",
+    "listing_url": "https://www.etsy.com/ca/listing/EXAMPLE4"
+  }
+]

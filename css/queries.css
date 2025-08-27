@@ -1,61 +1,98 @@
-/* ≥ 34em (≈544px) — small tablets */
+/* Responsive enhancements only */
+
+/* ≥ 34em (≈544px) */
 @media (min-width:34em){
   .grid--2cols{grid-template-columns:1fr 1fr}
   .gallery{grid-template-columns:repeat(3,1fr);gap:1rem}
   .etsy-carousel{grid-auto-columns:33%}
-  .section-001 .feature-row{grid-template-columns:1.2fr 1fr}
 }
 
-/* ≥ 48em (≈768px) — tablets/desktop */
+/* ≥ 48em (≈768px) */
 @media (min-width:48em){
-  /* Hero: bottom-align both columns to line up with buttons */
-  .hero{grid-template-columns:1.2fr 1fr;align-items:end}
-  .hero-text-box,.hero-image-box{align-self:end}
-  .section-hero{padding:4rem 0}
+  /* Show full nav, hide hamburger */
+  .btn-mobile-nav{display:none}
+  .main-nav{
+    position:static; inset:auto;
+    transform:none !important; opacity:1 !important; visibility:visible !important; pointer-events:auto !important;
+    padding:0; background:transparent;
+  }
+  .main-nav-list{display:flex;align-items:center;gap:1.25rem}
 
-  /* About: image | text */
-  .about-grid{grid-template-columns:1fr 1.2fr;gap:2rem}
+  /* Hero: align bottoms so image lines up with buttons/text */
+}
 
-  /* Contact: two-column */
-  .contact{grid-template-columns:1.2fr .8fr;gap:1.5rem}
+  /* About = photo | content */
+  .about-grid{
+    display:grid; grid-template-columns:1fr 1.2fr; gap:2rem; align-items:center;
+    grid-template-areas:"photo content";
+  }
+  .about-photo{grid-area:photo; justify-self:start}
+  .about-content{grid-area:content}
+  .about-content .heading-secondary{text-align:center}
 
-  /* Testimonials + Gallery alignment */
-  .testimonials-container{display:contents}
-  .section-testimonials .heading-secondary,
-  .section-testimonials .subheading{grid-column:1 / -1}
+  /* Etsy carousel columns a bit smaller on desktop */
+  .etsy-carousel{grid-auto-columns:25%}
 
-  .section-testimonials .testimonials{
-    grid-column:1 / 2;align-self:stretch;height:100%;
-    display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;
-    gap:1.25rem;align-items:start;align-content:stretch;
+  /* Testimonials + Gallery side-by-side */
+/* ≥ 48em: Testimonials | Gallery side-by-side, equal width & height */
+@media (min-width:48em){
+  .testimonials-container{
+    display:grid;
+    grid-template-columns: 1fr 1fr;   /* was 1.1fr 1fr */
+    gap:1.5rem;
+    align-items:stretch;              /* both columns same row height */
   }
 
+  .section-testimonials .testimonials,
   .section-testimonials .gallery{
-    grid-column:2 / 3;align-self:stretch;height:100%;
-    display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:1.25rem;
+    height:100%;                      /* fill the grid row */
   }
+
+  /* keep your existing inner grids */
+  .section-testimonials .testimonials{
+    display:grid; grid-template-columns:1fr 1fr; grid-auto-rows:minmax(0,1fr); gap:1.25rem;
+  }
+  .section-testimonials .gallery{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; align-content:start;
+  }
+}
 
   .section-testimonials .gallery-item{height:100%;border-radius:14px;overflow:hidden}
   .section-testimonials .gallery-item img{width:100%;height:100%;object-fit:cover}
-}
 
-/* ≥ 64em (≈1024px) — wide desktop */
-@media (min-width:64em){
-  .btn-mobile-nav{display:none}
-  .main-nav{
-    position:static;inset:auto;transform:none!important;opacity:1!important;
-    visibility:visible!important;pointer-events:auto!important;padding:0;background:transparent;
+  /* Contact layout: image | form */
+  .contact{
+    display:grid;
+    grid-template-columns: 1fr 1.1fr;
+    grid-template-areas: "img form";
+    gap: 1.5rem;
+    align-items: stretch;
   }
-  .main-nav-list{display:flex;align-items:center;gap:1.25rem}
-  .etsy-carousel{grid-auto-columns:25%}
+  .contact-img-box{
+    grid-area: img;
+    height: 100%;
+    min-height: 420px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .contact-text-box{
+    grid-area: form;
+    height: 100%;
+    display: grid;
+    align-content: start;
+  }
 }
 
-/* ≤ 34em (phones) — phone-specific tweaks */
+/* ≤ 34em (phones) */
 @media (max-width:34em){
   .contact{gap:1.25rem}
   .hero-image-box{margin-top:.5rem}
-  .etsy-nav{display:none}
 
-  /* Yarn bundle: slightly smaller/tighter on phones */
-  :root{ --yarn-size: 100px; --yarn-gap: 8px; --yarn-lower: 46px; --yarn-heading-nudge: -58px; }
+  /* Yarn bundle scale down on phones */
+  :root{
+    --yarn-size: 120px;
+    --yarn-gap: 8px;
+    --yarn-lower: 18px;
+    --yarn-heading-nudge: -6px;
+  }
 }

@@ -1,251 +1,275 @@
-/* main.js — CAC
-   - Mobile nav toggle with ARIA + focus trap
-   - Smooth-scroll for in-page anchors (ignores modals & data-no-scroll)
-   - Testimonial modal (full review)
-   - Etsy carousel (static data for now)
-   - Reviews rotator (JSON with fallback)
-   - Gallery lightbox (no hash changes; keyboard + arrows)
+/* Creative Arts Crochet — main.js
+   - Mobile nav
+   - Etsy carousel from resources/data/etsy.json
+   - Gallery from resources/data/instagram.json (local images)
+   - Lightbox (450×450)
+   - Review modal
+   - Carousel buttons & wheel scrolling
 */
-(() => {
-  const header = document.querySelector(".header");
-  const nav = document.querySelector(".main-nav");
-  const btn = document.querySelector(".btn-mobile-nav");
-  if (header && nav && btn) {
-    if (!nav.id) nav.id = "primary-navigation";
-    btn.setAttribute("aria-controls", nav.id);
-    btn.setAttribute("aria-expanded", "false");
 
-    let isOpen = false, lastFocused = null;
-    const focusableSelector = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"]), select, input, textarea';
-    const getFocusable = () => nav.querySelectorAll(focusableSelector);
+document.addEventListener('DOMContentLoaded', () => {
+  initMobileNav();
+  initEtsyCarousel();
+  initInstagramGallery();
+  initLightbox();
+  initReviewModal();
+  initEtsyScrollButtons();
+});
 
-    const openNav = () => {
-      if (isOpen) return;
-      isOpen = true; lastFocused = document.activeElement;
-      header.classList.add("nav-open");
-      btn.setAttribute("aria-expanded", "true");
-      const f = getFocusable(); if (f.length) f[0].focus();
-      document.addEventListener("keydown", onKeydown);
-      document.addEventListener("click", onDocClick, true);
-    };
-    const closeNav = () => {
-      if (!isOpen) return;
-      isOpen = false;
-      header.classList.remove("nav-open");
-      btn.setAttribute("aria-expanded", "false");
-      document.removeEventListener("keydown", onKeydown);
-      document.removeEventListener("click", onDocClick, true);
-      lastFocused?.focus?.();
-    };
-    const onKeydown = (e) => {
-      if (e.key === "Escape") return closeNav();
-      if (e.key === "Tab" && isOpen) {
-        const f = Array.from(getFocusable()); if (!f.length) return;
-        const first = f[0], last = f[f.length - 1];
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-      }
-    };
-    const onDocClick = (e) => {
-      if (!isOpen) return;
-      if (nav.contains(e.target) || btn.contains(e.target)) return;
-      closeNav();
-    };
-    btn.addEventListener("click", () => (isOpen ? closeNav() : openNav()));
-    nav.addEventListener("click", (e) => {
-      const link = e.target.closest(".main-nav-link");
-      if (link && isOpen) closeNav();
-    }, true);
+/* Mobile nav (only active <48em due to CSS) */
+function initMobileNav() {
+  const btn = document.querySelector('.btn-mobile-nav');
+  if (!btn) return;
+  btn.addEventListener('click', () => document.body.classList.toggle('nav-open'));
+  document.querySelectorAll('.main-nav-link').forEach(a =>
+    a.addEventListener('click', () => document.body.classList.remove('nav-open'))
+  );
+}
 
-    const mq = window.matchMedia("(min-width: 64em)");
-    const handleMQ = () => { if (mq.matches) { isOpen = false; header.classList.remove("nav-open"); btn.setAttribute("aria-expanded","false"); } };
-    (mq.addEventListener || mq.addListener).call(mq, "change", handleMQ); handleMQ();
+/* Fetch helper */
+async function fetchJSON(path) {
+  const r = await fetch(path, { cache: 'no-store' });
+  if (!r.ok) throw new Error(`${path} ${r.status}`);
+  return r.json();
+}
+
+/* Etsy carousel */
+async function initEtsyCarousel() {
+  const host = document.getElementById('etsy-carousel');
+  if (!host) return;
+  try {
+    const items = await fetchJSON('resources/data/etsy.json');
+    const fmt = new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' });
+    host.innerHTML = items.map(it => `
+      <article class="etsy-card">
+        <img src="${esc(it.image_url)}" alt="${esc(it.title)}" loading="lazy">
+        <h3>${escHTML(it.title)}</h3>
+        <p>${fmt.format(Number(it.price || 0))} ${it.currency ? escHTML(it.currency) : ''}</p>
+        <a href="${esc(it.url)}" target="_blank" rel="noopener">View on Etsy</a>
+      </article>
+    `).join('');
+  } catch (e) {
+    console.warn('Etsy feed failed:', e);
+    host.innerHTML = `<p style="text-align:center;color:#666">Etsy items are loading…</p>`;
   }
-})();
+}
 
-// Smooth scroll (ignore clicks inside modals and links with data-no-scroll)
-(() => {
-  const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  document.addEventListener("click", (e) => {
-    if (e.target.closest(".modal")) return; // don't interfere with modals
-    const a = e.target.closest('a[href^="#"]');
-    if (!a) return;
-    const href = a.getAttribute("href");
-    if (!href || href === "#" || a.hasAttribute("data-no-scroll")) return;
-    const target = document.querySelector(href);
-    if (!target) return;
-    e.preventDefault();
-    target.scrollIntoView({ behavior: prefersReduced ? "auto" : "smooth", block: "start" });
-  });
-})();
+/* Instagram-style gallery (local images via JSON) */
+async function initInstagramGallery() {
+  const wrap = document.getElementById('ig-gallery');
+  if (!wrap) return;
+  try {
+    const posts = await fetchJSON('resources/data/instagram.json');
+    wrap.innerHTML = posts.map(p => `
+      <figure class="gallery-item">
+        <a href="${esc(p.permalink || '#')}" aria-label="Open on Instagram">
+          <img src="${esc(p.image_url)}"
+               alt="${esc(p.alt || '')}"
+               data-large="${esc(p.image_url)}"
+               data-caption='${esc(p.caption || "")}'
+               loading="lazy">
+        </a>
+      </figure>
+    `).join('');
 
-// --- Full review modal ---
-(() => {
-  const modal = document.getElementById("review-modal");
-  const contentEl = document.getElementById("review-modal-content");
-  if (!modal || !contentEl) return;
-  let lastFocused = null;
-
-  const open = (html) => {
-    lastFocused = document.activeElement;
-    contentEl.innerHTML = html;
-    modal.hidden = false;
-    document.documentElement.classList.add("has-modal");
-    modal.querySelector(".modal__close")?.focus();
-    document.addEventListener("keydown", onKey);
-  };
-  const close = () => {
-    modal.hidden = true; contentEl.innerHTML = "";
-    document.documentElement.classList.remove("has-modal");
-    document.removeEventListener("keydown", onKey);
-    lastFocused?.focus?.();
-  };
-  const onKey = (e) => { if (e.key === "Escape") close(); };
-
-  document.addEventListener("click", (e) => {
-    const btn = e.target.closest(".review-more");
-    if (!btn) return;
-    const card = btn.closest(".testimonial");
-    const quote = card?.querySelector(".testimonial-text");
-    const author = card?.querySelector(".testimonial-name")?.textContent?.trim() ?? "";
-    if (!quote) return;
-    open(`<blockquote>${quote.textContent}</blockquote><p class="testimonial-name">${author}</p>`);
-  });
-  modal.addEventListener("click", (e) => {
-    if (e.target.matches("[data-close-modal]") || e.target.closest("[data-close-modal]")) close();
-  });
-})();
-
-// --- Etsy carousel (static data) ---
-(() => {
-  const root = document.getElementById("etsyCarousel");
-  if (!root) return;
-  const listings = [
-    { title: "Cozy Cardigan",  price: "CAD 8.50",  url: "https://www.etsy.com/ca/shop/CreativeArtsCrochet", image: "resources/img/testimonial-01.png" },
-    { title: "Drapey Shawl",    price: "CAD 6.75",  url: "https://www.etsy.com/ca/shop/CreativeArtsCrochet", image: "resources/img/testimonial-02.png" },
-    { title: "Weekend Beanie",  price: "CAD 5.25",  url: "https://www.etsy.com/ca/shop/CreativeArtsCrochet", image: "resources/img/testimonial-03.png" },
-    { title: "Textured Cowl",   price: "CAD 5.25",  url: "https://www.etsy.com/ca/shop/CreativeArtsCrochet", image: "resources/img/testimonial-04.png" },
-    { title: "Everyday Mitts",  price: "CAD 4.95",  url: "https://www.etsy.com/ca/shop/CreativeArtsCrochet", image: "resources/img/testimonial-05.png" },
-  ];
-  root.innerHTML = listings.map(l => `
-    <article class="etsy-card">
-      <img src="${l.image}" alt="${l.title}">
-      <h3>${l.title}</h3>
-      <p>${l.price}</p>
-      <a href="${l.url}" target="_blank" rel="noopener" data-no-scroll>View on Etsy</a>
-    </article>
-  `).join("");
-
-  const wrap = root.closest(".etsy-wrap");
-  const prev = wrap?.querySelector(".etsy-prev");
-  const next = wrap?.querySelector(".etsy-next");
-  const step = () => Math.min(root.clientWidth * 0.9, 600);
-  prev?.addEventListener("click", () => root.scrollBy({ left: -step(), behavior: "smooth" }));
-  next?.addEventListener("click", () => root.scrollBy({ left:  step(), behavior: "smooth" }));
-})();
-
-// --- Etsy reviews rotator (JSON-powered with fallback) ---
-(() => {
-  const grid = document.getElementById("testimonialsGrid");
-  if (!grid) return;
-
-  const CARD = (r) => `
-    <figure class="testimonial">
-      <img src="${r.avatar}" class="testimonial-img" alt="${r.author}">
-      <blockquote class="testimonial-text">“${(r.text || "").replace(/"/g, "&quot;")}”</blockquote>
-      <p class="testimonial-name">&mdash; ${r.author}</p>
-      <button class="review-more" type="button">Read full review</button>
-    </figure>
-  `;
-
-  const FALLBACK = [
-    { author: "Sally M.",  avatar: "resources/img/cust/1.png", rating: 5, text: "Pattern was crystal clear and the fit is chef’s kiss.", date: "2025-07-12" },
-    { author: "Hannah B.", avatar: "resources/img/cust/2.png", rating: 5, text: "Loved the step-by-step photos. Finished in a weekend.", date: "2025-06-02" },
-    { author: "Polly W.",  avatar: "resources/img/cust/3.png", rating: 4, text: "Fun, modern, wearable. Minimal frogging.", date: "2025-05-21" },
-    { author: "Mary S.",   avatar: "resources/img/cust/4.png", rating: 5, text: "Sizing was spot on; notes saved time. Recommend!", date: "2025-05-03" }
-  ];
-
-  let data = [], start = 0;
-  const VISIBLE = 4, INTERVAL_MS = 8000;
-
-  const render = () => {
-    if (!data.length) return;
-    const slice = [];
-    for (let i = 0; i < Math.min(VISIBLE, data.length); i++) {
-      slice.push(data[(start + i) % data.length]);
-    }
-    grid.innerHTML = slice.map(CARD).join("");
-    grid.classList.remove("testimonials-fade"); void grid.offsetWidth; grid.classList.add("testimonials-fade");
-    start = (start + VISIBLE) % data.length;
-  };
-
-  const use = (arr) => {
-    data = (arr || []).slice().sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-    if (!data.length) data = FALLBACK;
-    render();
-    if (data.length > VISIBLE) setInterval(render, INTERVAL_MS);
-  };
-
-  fetch("resources/data/reviews.json", { cache: "no-store" })
-    .then(r => (r.ok ? r.json() : FALLBACK))
-    .then(use)
-    .catch(() => use(FALLBACK));
-})();
-
-// --- Gallery Lightbox (no hash, no anchor scroll) ---
-(() => {
-  const modal = document.getElementById("gallery-modal");
-  if (!modal) return;
-
-  const imgs = Array.from(document.querySelectorAll(".gallery .gallery-item img"));
-  if (!imgs.length) return;
-
-  const imgEl = document.getElementById("lightbox-image");
-  const captionEl = document.getElementById("lightbox-title");
-  const prevBtn = modal.querySelector(".lightbox-nav.prev");
-  const nextBtn = modal.querySelector(".lightbox-nav.next");
-  let idx = 0, lastFocused = null;
-
-  const render = () => {
-    const el = imgs[idx];
-    const src = el.getAttribute("data-large") || el.currentSrc || el.src;
-    const alt = el.getAttribute("alt") || "Gallery image";
-    imgEl.src = src; imgEl.alt = alt; captionEl.textContent = alt;
-  };
-
-  const open = (i) => {
-    idx = i; lastFocused = document.activeElement;
-    render();
-    modal.hidden = false;
-    document.documentElement.classList.add("has-modal");
-    nextBtn?.focus();
-    document.addEventListener("keydown", onKey);
-  };
-
-  const close = () => {
-    modal.hidden = true;
-    document.documentElement.classList.remove("has-modal");
-    document.removeEventListener("keydown", onKey);
-    lastFocused?.focus?.();
-  };
-
-  const onKey = (e) => {
-    if (e.key === "Escape") return close();
-    if (e.key === "ArrowRight") { idx = (idx + 1) % imgs.length; return render(); }
-    if (e.key === "ArrowLeft")  { idx = (idx - 1 + imgs.length) % imgs.length; return render(); }
-  };
-
-  imgs.forEach((el, i) => {
-    el.tabIndex = 0;
-    el.addEventListener("click", (ev) => { ev.preventDefault(); open(i); });
-    el.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(i); }
+    // Intercept clicks to open our lightbox instead of navigating
+    wrap.querySelectorAll('.gallery-item a').forEach(a => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const img = a.querySelector('img');
+        openLightbox(img.dataset.large || img.src, img.dataset.caption || '');
+      });
     });
+
+    refreshLightboxSources();
+  } catch (e) {
+    console.warn('Instagram feed failed:', e);
+    wrap.innerHTML = `<p style="text-align:center;color:#666">Gallery is loading…</p>`;
+  }
+}
+
+/* Lightbox */
+const LIGHTBOX = { modal:null, img:null, cap:null, sources:[], index:-1 };
+
+function initLightbox(){
+  ensureLightboxModal();
+  refreshLightboxSources();
+
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLElement)) return;
+
+    if (t.matches('.gallery .gallery-item img')) {
+      e.preventDefault();
+      const src = t.dataset.large || t.getAttribute('src');
+      const cap = t.dataset.caption || t.getAttribute('alt') || '';
+      openLightbox(src, cap);
+      setCurrentIndexFromSrc(src);
+    }
+    if (t.matches('.lightbox-nav.next')) { e.preventDefault(); showNext(); }
+    if (t.matches('.lightbox-nav.prev')) { e.preventDefault(); showPrev(); }
+    if (t.hasAttribute('data-close-modal')) { closeLightbox(); }
   });
 
-  prevBtn?.addEventListener("click", () => { idx = (idx - 1 + imgs.length) % imgs.length; render(); });
-  nextBtn?.addEventListener("click", () => { idx = (idx + 1) % imgs.length; render(); });
-  modal.addEventListener("click", (e) => {
-    if (e.target.matches("[data-close-modal]")) close();
+  window.addEventListener('keydown', (e) => {
+    if (!isLightboxOpen()) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowRight') showNext();
+    if (e.key === 'ArrowLeft') showPrev();
   });
-})();
+}
+
+function ensureLightboxModal(){
+  let m = document.getElementById('gallery-modal');
+  if (!m){
+    m = document.createElement('div');
+    m.className = 'modal modal--lightbox';
+    m.id = 'gallery-modal';
+    m.setAttribute('role','dialog');
+    m.setAttribute('aria-modal','true');
+    m.setAttribute('hidden','');
+    m.innerHTML = `
+      <div class="modal__backdrop" data-close-modal></div>
+      <figure class="modal__panel modal__panel--wide" role="document">
+        <button class="modal__close" type="button" aria-label="Close" data-close-modal>&times;</button>
+        <div class="lightbox-stage">
+          <img id="lightbox-image" class="lightbox-img" alt="">
+        </div>
+        <figcaption class="lightbox-caption"></figcaption>
+        <button class="lightbox-nav prev" type="button" aria-label="Previous image">‹</button>
+        <button class="lightbox-nav next" type="button" aria-label="Next image">›</button>
+      </figure>`;
+    document.body.appendChild(m);
+  }
+  LIGHTBOX.modal = m;
+  LIGHTBOX.img = m.querySelector('#lightbox-image');
+  LIGHTBOX.cap = m.querySelector('.lightbox-caption');
+}
+
+function refreshLightboxSources(){
+  const imgs = Array.from(document.querySelectorAll('.gallery .gallery-item img'));
+  LIGHTBOX.sources = imgs.map(img => ({
+    src: img.dataset.large || img.getAttribute('src') || '',
+    caption: img.dataset.caption || img.getAttribute('alt') || ''
+  }));
+}
+
+function setCurrentIndexFromSrc(src){
+  const i = LIGHTBOX.sources.findIndex(s => s.src === src);
+  LIGHTBOX.index = i >= 0 ? i : -1;
+}
+function isLightboxOpen(){ return LIGHTBOX.modal && !LIGHTBOX.modal.hasAttribute('hidden'); }
+function openLightbox(src, caption){
+  ensureLightboxModal();
+  LIGHTBOX.img.src = src;
+  LIGHTBOX.cap.textContent = caption || '';
+  LIGHTBOX.modal.removeAttribute('hidden');
+  document.body.style.overflow = 'hidden';
+  setCurrentIndexFromSrc(src);
+}
+function closeLightbox(){
+  if (!LIGHTBOX.modal) return;
+  LIGHTBOX.modal.setAttribute('hidden','');
+  document.body.style.overflow = '';
+}
+function showNext(){
+  if (!LIGHTBOX.sources.length) return;
+  LIGHTBOX.index = (LIGHTBOX.index + 1) % LIGHTBOX.sources.length;
+  const { src, caption } = LIGHTBOX.sources[LIGHTBOX.index];
+  LIGHTBOX.img.src = src; LIGHTBOX.cap.textContent = caption || '';
+}
+function showPrev(){
+  if (!LIGHTBOX.sources.length) return;
+  LIGHTBOX.index = (LIGHTBOX.index - 1 + LIGHTBOX.sources.length) % LIGHTBOX.sources.length;
+  const { src, caption } = LIGHTBOX.sources[LIGHTBOX.index];
+  LIGHTBOX.img.src = src; LIGHTBOX.cap.textContent = caption || '';
+}
+
+/* Review modal */
+function initReviewModal(){
+  const triggers = document.querySelectorAll('.review-more');
+  if (!triggers.length) return;
+
+  let modal = document.getElementById('review-modal');
+  if (!modal){
+    modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'review-modal';
+    modal.setAttribute('role','dialog');
+    modal.setAttribute('aria-modal','true');
+    modal.setAttribute('hidden','');
+    modal.innerHTML = `
+      <div class="modal__backdrop" data-close-modal></div>
+      <div class="modal__panel" role="document">
+        <button class="modal__close" type="button" aria-label="Close" data-close-modal>&times;</button>
+        <h3 class="modal__title">Full Review</h3>
+        <div class="modal__content"></div>
+      </div>`;
+    document.body.appendChild(modal);
+  }
+  const content = modal.querySelector('.modal__content');
+
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.review-more');
+    if (!btn) return;
+    e.preventDefault();
+    const card = btn.closest('.testimonial');
+    const txt = card?.querySelector('.testimonial-text')?.textContent?.trim() || '';
+    content.textContent = txt || '—';
+    modal.removeAttribute('hidden');
+    document.body.style.overflow = 'hidden';
+  });
+
+  document.addEventListener('click', (e) => {
+    if (e.target.hasAttribute('data-close-modal')){
+      modal.setAttribute('hidden','');
+      document.body.style.overflow = '';
+    }
+  });
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.hasAttribute('hidden')){
+      modal.setAttribute('hidden','');
+      document.body.style.overflow = '';
+    }
+  });
+}
+
+/* Etsy nav buttons + wheel-to-horizontal */
+function initEtsyScrollButtons(){
+  const track = document.getElementById('etsy-carousel');
+  if (!track) return;
+  const prev = document.querySelector('.etsy-prev');
+  const next = document.querySelector('.etsy-next');
+  const step = () => Math.max(track.clientWidth * 0.9, 320);
+
+  prev && prev.addEventListener('click', e => { e.preventDefault(); track.scrollBy({ left:-step(), behavior:'smooth' }); });
+  next && next.addEventListener('click', e => { e.preventDefault(); track.scrollBy({ left: step(), behavior:'smooth' }); });
+
+  track.addEventListener('wheel', (e) => {
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      track.scrollLeft += e.deltaY;
+      e.preventDefault();
+    }
+  }, { passive:false });
+}
+
+/* Utilities */
+function esc(s){ return escHTML(String(s||'').trim()); }
+function escHTML(str){
+  return String(str||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // ...your existing initializers
+  initHeaderElevation();
+});
+
+function initHeaderElevation(){
+  const header = document.querySelector('.header');
+  if (!header) return;
+  const onScroll = () => {
+    header.classList.toggle('header--elevated', window.scrollY > 10);
+  };
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+}
