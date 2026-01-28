@@ -72,7 +72,7 @@ h1,h2,h3,h4,h5,h6,.heading-primary,.heading-secondary,.heading-tertiary{
 
 /* Header / Nav (mobile default; desktop rules in queries.css) */
 .header{
-  position:sticky; top:0; z-index:1000; /* below drawer */
+  position:sticky; top:0; z-index:6000; /* above drawer */
   display:flex; align-items:center; justify-content:space-between; gap:var(--space-3);
   padding:1rem 1.25rem;
   background:rgba(255,255,255,.92);
@@ -84,23 +84,40 @@ h1,h2,h3,h4,h5,h6,.heading-primary,.heading-secondary,.heading-tertiary{
   background:linear-gradient(90deg,var(--pink-1),var(--magenta),var(--sky)); opacity:.35; pointer-events:none;
 }
 .header--elevated{ box-shadow:var(--shadow-strong); }
-.nav-open .header{ background:#fff; backdrop-filter:none; } /* solid when drawer open */
+body.nav-open .header{ background:#fff; backdrop-filter:none; } /* solid when drawer open */
 
 .logo{height:48px;width:auto}
-.header .logo{height:clamp(60px,8vw,96px)}
-.footer .logo{height:clamp(72px,10vw,110px)}
+.header .logo{height:clamp(48px,6.4vw,77px)}
+.footer .logo{height:clamp(36px,5vw,55px)}
 
 /* Mobile nav drawer (single source of truth) */
 .main-nav{
-  position:fixed; inset:0; z-index:4000;
-  background:#fff; padding:6rem 2rem 2rem;
-  transform:translateX(100%); opacity:0; visibility:hidden; pointer-events:none;
-  transition:transform .3s, opacity .3s, visibility .3s;
+  position:fixed; top:0; right:0; bottom:0;
+  width:min(86vw, 360px);
+  z-index:5500;
+  background:#fff;
+  box-shadow: -18px 0 36px rgba(0,0,0,.12);
+  padding:calc(5.25rem + env(safe-area-inset-top)) 2rem 2rem;
+  transform:translateX(110%);
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  transition:transform .3s ease, opacity .3s, visibility .3s;
 }
 body.nav-open .main-nav{
-  transform:translateX(0); opacity:1; visibility:visible; pointer-events:auto;
+  transform:translateX(0);
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
 }
-.nav-backdrop{ position:fixed; inset:0; z-index:3990; background:rgba(0,0,0,.32); }
+.nav-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:5400;
+  background:rgba(0,0,0,.32);
+}
 body.nav-open{ overflow:hidden; }
 
 .main-nav-list{display:grid;gap:1rem}
@@ -176,6 +193,11 @@ body.nav-open .icon-mobile-nav[name="close-outline"]{display:inline-block}
 .testimonials{display:grid;gap:var(--space-3)}
 .testimonial{background:#fff;border:1px solid color-mix(in srgb,var(--clr-primary) 14%, white);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow);display:flex;flex-direction:column;height:100%}
 .testimonial-img{width:64px;height:64px;border-radius:50%;object-fit:cover}
+.testimonial-img--icon{
+  background:color-mix(in srgb,var(--clr-accent) 14%, white);
+  border:1px solid color-mix(in srgb,var(--clr-accent) 20%, white);
+  padding:12px;
+}
 .testimonial-text{position:relative;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin:.75rem 0;color:#333}
 .testimonial-text::after{content:"";position:absolute;inset:auto 0 0 0;height:2.5rem;background:linear-gradient(180deg,rgba(255,255,255,0),#fff 65%);pointer-events:none}
 .testimonial-name{font-weight:700;font-size:1rem;color:var(--clr-muted)}
@@ -235,34 +257,5 @@ body.nav-open .icon-mobile-nav[name="close-outline"]{display:inline-block}
 /* Focus ring */
 :focus-visible{outline:3px solid color-mix(in srgb,var(--clr-accent) 65%,white);outline-offset:2px}
 
-/* Logo size tweak: header -20%, footer ~-50% */
-.header .logo { height: clamp(48px, 6.4vw, 77px); }  /* was clamp(60px, 8vw, 96px) */
-.footer .logo { height: clamp(36px, 5vw, 55px); }    /* was clamp(72px,10vw,110px) */
 
 
-/* NAV drawer hard guarantees */
-.header{ z-index: 4100; }                /* sticky header */
-.main-nav{
-  position: fixed;
-  inset: 0;
-  z-index: 5000;                         /* ABOVE header */
-  background: #fff;                      /* solid, no transparency */
-  transform: translateX(100%);
-  opacity: 0; visibility: hidden; pointer-events: none;
-  transition: transform .3s ease, opacity .3s ease, visibility .3s ease;
-}
-body.nav-open .main-nav{
-  transform: translateX(0);
-  opacity: 1; visibility: visible; pointer-events: auto;
-}
-.nav-backdrop{ position: fixed; inset: 0; z-index: 4900; background: rgba(0,0,0,.32); }
-
-/* Desktop reset (≥48em) */
-@media (min-width:48em){
-  .nav-backdrop{ display:none; }
-  .main-nav{
-    position: static; inset: auto; z-index: auto;
-    transform: none; opacity: 1; visibility: visible; pointer-events: auto;
-    background: transparent;
-  }
-}

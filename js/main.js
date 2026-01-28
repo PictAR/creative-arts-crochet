@@ -8,22 +8,35 @@
   const nav  = document.querySelector('.main-nav');
   if (!btn || !nav) return;
 
+  const setExpanded = (isOpen) => btn.setAttribute('aria-expanded', String(isOpen));
+
   let scrim = null;
+  setExpanded(false);
   const open = () => {
     if (body.classList.contains('nav-open')) return;
     body.classList.add('nav-open');
+    setExpanded(true);
     scrim = document.createElement('div');
     scrim.className = 'nav-backdrop';
     document.body.appendChild(scrim);
     scrim.addEventListener('click', close, { once: true });
+
+    // Move focus into the menu for keyboard users
+    setTimeout(() => nav.querySelector('a')?.focus(), 0);
   };
   const close = () => {
     body.classList.remove('nav-open');
+    setExpanded(false);
     scrim?.remove(); scrim = null;
   };
   const toggle = () => (body.classList.contains('nav-open') ? close() : open());
 
   btn.addEventListener('click', toggle);
+
+  // Close on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') close();
+  });
 
   // In-page links: close first, then smooth scroll
   nav.querySelectorAll('a[href^="#"]').forEach(a => {
