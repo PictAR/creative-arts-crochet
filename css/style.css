@@ -1,14 +1,10 @@
 /* ==========================================================================
    Creative Arts Crochet — Global Styles
-   © 2021–2025 Tristan James 3D / Island T 3D
-   Contact: tristanjames3d@gmail.com
-   Brand colors:
-     #FFABCA #FFB0AB #FFBFAB #FFCEAB #FFABFD  |  #ABD4FF #AEABFF
+   © 2021–2025 Tristan James 3D / Island T | 3D · tristanjames3d@gmail.com
+   Brand colors: #FFABCA #FFB0AB #FFBFAB #FFCEAB #FFABFD | #ABD4FF #AEABFF
    ========================================================================== */
 
-/* Creative Arts Crochet — base styles (breakpoints in queries.css) */
-
-/* Reset / base */
+/* Reset / Base */
 *,*::before,*::after{box-sizing:border-box}
 html:focus-within{scroll-behavior:smooth}
 body{margin:0;font-family:"Barlow",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#222;line-height:1.6;background:#fff}
@@ -17,7 +13,7 @@ input,button,textarea,select{font:inherit}
 a{color:inherit;text-decoration:none}
 ul,ol{margin:0;padding:0;list-style:none}
 figure,blockquote{margin:0}
-section{scroll-margin-top:80px}
+section{scroll-margin-top:100px}
 
 /* Theme tokens */
 :root{
@@ -29,15 +25,19 @@ section{scroll-margin-top:80px}
   --clr-accent:var(--sky);
   --clr-text:#222; --clr-muted:#666; --clr-surface:#fff;
 
-  --bg-hero:color-mix(in srgb,var(--peach) 16%, white);
+  --bg-hero:color-mix(in srgb,var(--peach) 16%,white);
   --bg-about:var(--lilac);
   --bg-footer:var(--salmon);
 
   --radius:16px; --shadow:0 10px 30px rgba(0,0,0,.08); --container:1200px;
   --space-1:.5rem; --space-2:1rem; --space-3:1.5rem; --space-4:2rem; --space-5:3rem;
 
-  --primary-hover:color-mix(in srgb,var(--clr-primary) 90%, black);
-  --primary-soft:color-mix(in srgb,var(--clr-primary) 10%, white);
+  --shadow-weak:0 2px 10px rgba(0,0,0,.06);
+  --shadow-strong:0 8px 24px rgba(0,0,0,.14);
+
+  /* Decorative yarn (scaled further in queries.css) */
+  --yarn-size: clamp(120px, 22vmin, 360px);
+  --yarn-gap: 18px;
 }
 
 /* Helpers */
@@ -49,11 +49,11 @@ section{scroll-margin-top:80px}
 .skip-link{position:absolute;left:-9999px}
 .skip-link:focus{left:1rem;top:1rem;background:#000;color:#fff;padding:.5rem .75rem;z-index:10000}
 
-/* Headings: Amatic for all titles */
+/* Typography (Amatic for headings) */
 h1,h2,h3,h4,h5,h6,.heading-primary,.heading-secondary,.heading-tertiary{
   font-family:"Amatic SC",cursive !important;font-weight:700;letter-spacing:.01em
 }
-.heading-primary{font-size:clamp(2.4rem,4vw,3.6rem);line-height:1.12}
+.heading-primary{font-size:clamp(2.4rem,4vw,3.6rem);line-height:1.12;margin-top:0}
 .heading-secondary{font-size:clamp(1.8rem,2.6vw,2.3rem);text-align:center}
 .heading-tertiary{font-size:clamp(1.4rem,2vw,1.75rem);text-align:center}
 .heading-secondary::after,.heading-tertiary::after{
@@ -64,48 +64,69 @@ h1,h2,h3,h4,h5,h6,.heading-primary,.heading-secondary,.heading-tertiary{
 /* Buttons */
 .btn{display:inline-block;border-radius:999px;font-weight:600;padding:.85rem 1.15rem;border:2px solid var(--clr-primary);transition:background-color .2s,color .2s,border-color .2s}
 .btn--full{background:var(--clr-primary);color:var(--clr-primary-contrast)}
-.btn--full:hover{background:var(--primary-hover);border-color:var(--primary-hover)}
+.btn--full:hover{background:color-mix(in srgb,var(--clr-primary) 90%, black);border-color:color-mix(in srgb,var(--clr-primary) 90%, black)}
 .btn--outline{color:var(--clr-primary);background:#fff}
-.btn--outline:hover{background:var(--primary-soft)}
+.btn--outline:hover{background:color-mix(in srgb,var(--clr-primary) 10%, white)}
 .btn--form{background:var(--clr-primary);border-color:var(--clr-primary);color:var(--clr-primary-contrast)}
-.btn--form:hover{background:var(--primary-hover);border-color:var(--primary-hover)}
+.btn--form:hover{background:color-mix(in srgb,var(--clr-primary) 90%, black);border-color:color-mix(in srgb,var(--clr-primary) 90%, black)}
 
 /* Header / Nav (mobile default; desktop rules in queries.css) */
-.header{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);padding:.75rem 1rem;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.04)}
-.logo{height:48px;width:auto}
+.header{
+  position:sticky; top:0; z-index:1000; /* below drawer */
+  display:flex; align-items:center; justify-content:space-between; gap:var(--space-3);
+  padding:1rem 1.25rem;
+  background:rgba(255,255,255,.92);
+  box-shadow:var(--shadow-weak);
+}
+@supports (backdrop-filter:blur(8px)){ .header{ backdrop-filter:saturate(1.1) blur(8px); } }
+.header::after{
+  content:""; position:absolute; left:0; right:0; bottom:0; height:2px;
+  background:linear-gradient(90deg,var(--pink-1),var(--magenta),var(--sky)); opacity:.35; pointer-events:none;
+}
+.header--elevated{ box-shadow:var(--shadow-strong); }
+.nav-open .header{ background:#fff; backdrop-filter:none; } /* solid when drawer open */
 
-.main-nav{position:fixed;inset:0 0 0 30%;background:#fff;padding:6rem 2rem 2rem;transform:translateX(100%);opacity:0;visibility:hidden;pointer-events:none;transition:transform .3s,opacity .3s,visibility .3s}
+.logo{height:48px;width:auto}
+.header .logo{height:clamp(60px,8vw,96px)}
+.footer .logo{height:clamp(72px,10vw,110px)}
+
+/* Mobile nav drawer (single source of truth) */
+.main-nav{
+  position:fixed; inset:0; z-index:4000;
+  background:#fff; padding:6rem 2rem 2rem;
+  transform:translateX(100%); opacity:0; visibility:hidden; pointer-events:none;
+  transition:transform .3s, opacity .3s, visibility .3s;
+}
+body.nav-open .main-nav{
+  transform:translateX(0); opacity:1; visibility:visible; pointer-events:auto;
+}
+.nav-backdrop{ position:fixed; inset:0; z-index:3990; background:rgba(0,0,0,.32); }
+body.nav-open{ overflow:hidden; }
+
 .main-nav-list{display:grid;gap:1rem}
 .main-nav-link{position:relative;display:inline-block;padding:.5rem .25rem;font-weight:600;transition:color .2s}
-.main-nav-link:not(.nav-cta)::after{content:"";position:absolute;left:0;bottom:-.3rem;height:2px;width:0;background:var(--clr-accent);transition:width .2s}
+.main-nav-link:not(.nav-cta)::after{
+  content:"";position:absolute;left:0;bottom:-.3rem;height:2px;width:0;background:var(--clr-accent);transition:width .2s
+}
 @media (hover:hover) and (pointer:fine){
   .main-nav-link:hover,.main-nav-link:focus-visible{color:var(--clr-accent)}
   .main-nav-link:not(.nav-cta):hover::after,.main-nav-link:not(.nav-cta):focus-visible::after{width:100%}
 }
 .main-nav-link.nav-cta{background:var(--clr-primary);color:var(--clr-primary-contrast);padding:.6rem .9rem;border-radius:999px;border:2px solid var(--clr-primary)}
 @media (hover:hover) and (pointer:fine){
-  .main-nav-link.nav-cta:hover,.main-nav-link.nav-cta:focus-visible{background:var(--primary-hover);border-color:var(--primary-hover)}
+  .main-nav-link.nav-cta:hover,.main-nav-link.nav-cta:focus-visible{background:color-mix(in srgb,var(--clr-primary) 90%, black);border-color:color-mix(in srgb,var(--clr-primary) 90%, black)}
 }
-@media (hover:none){.main-nav-link:active{opacity:.85}}
 .btn-mobile-nav{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:0;background:transparent;cursor:pointer}
 .icon-mobile-nav{width:28px;height:28px}
 .icon-mobile-nav[name="close-outline"]{display:none}
-.nav-open .main-nav{transform:translateX(0);opacity:1;visibility:visible;pointer-events:auto}
-.nav-open .icon-mobile-nav[name="close-outline"]{display:inline-block}
-.nav-open .icon-mobile-nav[name="menu-outline"]{display:none}
+body.nav-open .icon-mobile-nav[name="menu-outline"]{display:none}
+body.nav-open .icon-mobile-nav[name="close-outline"]{display:inline-block}
 
 /* Hero */
 .section-hero{background:var(--bg-hero);padding:var(--space-5) 0}
 .hero{display:grid;gap:var(--space-4)}
 .hero .button-box{display:flex;flex-wrap:wrap;gap:.75rem}
 .hero-image-box img{display:block;vertical-align:middle}
-@media (min-width:48em){
-  .hero-image-box img{ transform: none; }
-  /* Remove default top margin so the title truly sits at the top edge */
-.hero-text-box .heading-primary{ margin-top: 0; }
-.hero-description{ margin-top: .5rem; } /* optional tidy */
-
-}
 
 /* About */
 .section-about{background:var(--bg-about);padding:var(--space-5) 0}
@@ -113,10 +134,10 @@ h1,h2,h3,h4,h5,h6,.heading-primary,.heading-secondary,.heading-tertiary{
 .about-photo{border-radius:var(--radius);overflow:hidden;box-shadow:0 12px 28px rgba(0,0,0,.08)}
 .about-photo img{width:100%;height:auto}
 .about-content .heading-secondary{margin-bottom:.5rem}
-.about-content{ text-align:left; }
+.about-content{text-align:left}
 .about-blurb{color:#333;text-align:left;max-width:65ch;margin-inline:auto}
 
-/* Etsy (cards scroll) */
+/* Etsy */
 .section-etsy{padding:calc(var(--space-5) - .75rem) 0}
 .section-etsy .heading-secondary,.section-etsy .subheading{text-align:center}
 .section-etsy .subheading{color:var(--clr-muted);margin-top:.2rem;margin-bottom:.75rem}
@@ -127,16 +148,33 @@ h1,h2,h3,h4,h5,h6,.heading-primary,.heading-secondary,.heading-tertiary{
 .etsy-card h3{font-size:1rem;margin:.75rem .9rem 0;line-height:1.35}
 .etsy-card p{margin:.25rem .9rem .9rem;color:var(--clr-muted)}
 .etsy-card a{display:block;text-align:center;font-weight:700;background:var(--clr-primary);color:var(--clr-primary-contrast);padding:.65rem}
-@media (hover:hover){.etsy-card a:hover,.etsy-card a:focus-visible{background:var(--primary-hover)}}
+@media (hover:hover){.etsy-card a:hover,.etsy-card a:focus-visible{background:color-mix(in srgb,var(--clr-primary) 90%, black)}}
 .etsy-nav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;border:0;background:#fff;color:#222;box-shadow:var(--shadow);display:grid;place-items:center;cursor:pointer;opacity:.95}
 .etsy-prev{left:-.5rem}.etsy-next{right:-.5rem}
 
-/* Testimonials + Gallery (base; desktop grid in queries.css) */
-.section-testimonials{padding:calc(var(--space-5) - .75rem) 0;gap:var(--space-4);align-items:start;width:min(100% - 2rem,var(--container));margin-inline:auto}
-.section-testimonials .heading-secondary{margin-bottom:.25rem}
-.section-testimonials .subheading{color:#666;margin-top:.2rem;margin-bottom:1rem}
+/* Testimonials + Gallery (base stacked) */
+.section-testimonials{display: block;padding:calc(var(--space-5) - .75rem) 0;position:relative}
+.section-testimonials .container{width:min(100% - 2rem,var(--container));margin-inline:auto}
+
+/* Yarn bundle decoration — centered above section, behind Etsy */
+.section-testimonials::before{
+  content:"";
+  position:absolute; left:50%; transform:translateX(-50%);
+  top: calc(-1 * (var(--yarn-size)/2 + var(--yarn-gap)));
+  width: var(--yarn-size); height: var(--yarn-size);
+  background:url("../resources/img/bundle.png") center/contain no-repeat;
+  pointer-events:none; filter:drop-shadow(0 6px 18px rgba(0,0,0,.12));
+  z-index:-1;
+}
+
+/* Titles row */
+.duo-head{position:relative;z-index:2;margin-top:calc(var(--yarn-size)/2 + var(--yarn-gap));text-align:center}
+.duo-head .subheading{max-width:60ch;margin:.5rem auto 1rem;color:var(--clr-muted)}
+
+/* Content areas */
+.section-testimonials{display:grid;gap:var(--space-4)}
 .testimonials{display:grid;gap:var(--space-3)}
-.testimonial{background:#fff;border:1px solid color-mix(in srgb,var(--clr-primary) 14%, white);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow)}
+.testimonial{background:#fff;border:1px solid color-mix(in srgb,var(--clr-primary) 14%, white);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow);display:flex;flex-direction:column;height:100%}
 .testimonial-img{width:64px;height:64px;border-radius:50%;object-fit:cover}
 .testimonial-text{position:relative;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin:.75rem 0;color:#333}
 .testimonial-text::after{content:"";position:absolute;inset:auto 0 0 0;height:2.5rem;background:linear-gradient(180deg,rgba(255,255,255,0),#fff 65%);pointer-events:none}
@@ -160,37 +198,8 @@ h1,h2,h3,h4,h5,h6,.heading-primary,.heading-secondary,.heading-tertiary{
 .contact-form label{font-weight:600;display:block;margin-bottom:.35rem}
 .contact-form input,.contact-form select{width:100%;padding:.75rem .9rem;border-radius:10px;border:1px solid #ddd;background:#fff}
 .contact-form input:focus,.contact-form select:focus{outline:2px solid color-mix(in srgb,var(--clr-primary) 35%, transparent);border-color:var(--clr-primary)}
-/* Set the correct file extension here (.jpeg or .png) */
 .contact-img-box{min-height:340px;border-radius:var(--radius);background:url("../resources/img/form-pic-2.jpeg") center/cover no-repeat;box-shadow:var(--shadow);filter:saturate(1.06) contrast(1.05);transition:filter .25s ease}
 @media (hover:hover){.contact-img-box:hover{filter:saturate(1.1) contrast(1.08)}}
-
-/* Header visual polish */
-:root{
-  --shadow-weak: 0 2px 10px rgba(0,0,0,.06);
-  --shadow-strong: 0 8px 24px rgba(0,0,0,.14);
-}
-
-.header{
-  position: sticky; top: 0;
-  background: rgba(255,255,255,.92);
-  box-shadow: var(--shadow-weak);
-}
-
-/* Frosted effect where supported */
-@supports (backdrop-filter: blur(8px)){
-  .header{ backdrop-filter: saturate(1.1) blur(8px); }
-}
-
-/* A subtle gradient hairline at the bottom */
-.header::after{
-  content:""; position:absolute; left:0; right:0; bottom:0; height:2px;
-  background: linear-gradient(90deg, var(--pink-1), var(--magenta), var(--sky));
-  opacity:.35; pointer-events:none;
-}
-
-/* Stronger elevation only after scroll */
-.header--elevated{ box-shadow: var(--shadow-strong); }
-
 
 /* Footer */
 .footer{background:var(--bg-footer);color:#222}
@@ -207,7 +216,7 @@ h1,h2,h3,h4,h5,h6,.heading-primary,.heading-secondary,.heading-tertiary{
 
 /* Modal / Lightbox */
 .modal[hidden]{display:none}
-.modal{position:fixed;inset:0;z-index:1000;display:grid;place-items:center}
+.modal{position:fixed;inset:0;z-index:2000;display:grid;place-items:center}
 .modal__backdrop{position:absolute;inset:0;background:rgba(0,0,0,.45)}
 .modal__panel{position:relative;max-width:min(92vw,720px);width:100%;background:#fff;border-radius:16px;box-shadow:var(--shadow);padding:1.25rem 1.25rem 1.5rem}
 .modal__title{margin:0 0 .5rem;font-size:1.25rem}
@@ -223,25 +232,37 @@ h1,h2,h3,h4,h5,h6,.heading-primary,.heading-secondary,.heading-tertiary{
 .lightbox-nav.prev{left:.5rem}.lightbox-nav.next{right:.5rem}
 @media (hover:hover){.lightbox-nav:hover,.lightbox-nav:focus-visible{background:#fff}}
 
-/* Focus */
+/* Focus ring */
 :focus-visible{outline:3px solid color-mix(in srgb,var(--clr-accent) 65%,white);outline-offset:2px}
 
-/* --- Decorative yarn bundle between Etsy button and Testimonials --- */
-:root{
-  --yarn-size: clamp(220px, 20vw, 420px);
-  --yarn-gap: 48px;
-  --yarn-lower: 110px;
-  --yarn-heading-nudge: -96px;
-}
-.etsy-more{ position: relative; z-index: 1; }
-.etsy-more::after{
-  content:""; position:absolute; left:50%; transform:translateX(-50%);
-  width:var(--yarn-size); height:var(--yarn-size);
-  bottom: calc(-1 * (var(--yarn-size)/2 + var(--yarn-gap) + var(--yarn-lower)));
-  background:url("../resources/img/bundle.png") center / contain no-repeat;
-  pointer-events:none; filter:drop-shadow(0 6px 18px rgba(0,0,0,.12)); z-index:2;
-}
-.section-testimonials .heading-secondary{
-  margin-top: calc(var(--yarn-size)/2 + var(--yarn-gap) + var(--yarn-lower) + var(--yarn-heading-nudge));
-}
+/* Logo size tweak: header -20%, footer ~-50% */
+.header .logo { height: clamp(48px, 6.4vw, 77px); }  /* was clamp(60px, 8vw, 96px) */
+.footer .logo { height: clamp(36px, 5vw, 55px); }    /* was clamp(72px,10vw,110px) */
 
+
+/* NAV drawer hard guarantees */
+.header{ z-index: 4100; }                /* sticky header */
+.main-nav{
+  position: fixed;
+  inset: 0;
+  z-index: 5000;                         /* ABOVE header */
+  background: #fff;                      /* solid, no transparency */
+  transform: translateX(100%);
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: transform .3s ease, opacity .3s ease, visibility .3s ease;
+}
+body.nav-open .main-nav{
+  transform: translateX(0);
+  opacity: 1; visibility: visible; pointer-events: auto;
+}
+.nav-backdrop{ position: fixed; inset: 0; z-index: 4900; background: rgba(0,0,0,.32); }
+
+/* Desktop reset (≥48em) */
+@media (min-width:48em){
+  .nav-backdrop{ display:none; }
+  .main-nav{
+    position: static; inset: auto; z-index: auto;
+    transform: none; opacity: 1; visibility: visible; pointer-events: auto;
+    background: transparent;
+  }
+}
